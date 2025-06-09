@@ -34,6 +34,10 @@ class PedidoCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pedido
         fields = ['cliente', 'estado', 'detalles']
+        extra_kwargs = {
+            'cliente': {'required': False},  # No requerido, se asigna automáticamente
+            'estado': {'default': 'pendiente'}
+        }
     
     def validate_detalles(self, value):
         if not value:
@@ -42,6 +46,8 @@ class PedidoCreateSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         detalles_data = validated_data.pop('detalles')
+        
+        # Si el cliente no se proporciona, se asigna en el perform_create del viewset
         pedido = Pedido.objects.create(**validated_data)
         
         for detalle_data in detalles_data:

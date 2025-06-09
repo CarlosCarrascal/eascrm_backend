@@ -22,6 +22,12 @@ urlpatterns = [
     # Registro de usuarios
     path('api/register/', api_views.register_user, name='register_user'),
     
+    # Vincular usuario a cliente existente
+    path('api/link-user-client/', api_views.link_user_to_client, name='link_user_to_client'),
+    
+    # Obtener datos del usuario actual
+    path('api/current-user/', api_views.current_user, name='current_user'),
+    
     # Redirige la página principal al admin
     path('', views.home, name='home'),
 ]

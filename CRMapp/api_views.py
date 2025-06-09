@@ -102,7 +102,6 @@ class ProductoViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 class PedidoViewSet(viewsets.ModelViewSet):
-    queryset = Pedido.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -111,12 +110,50 @@ class PedidoViewSet(viewsets.ModelViewSet):
     ordering_fields = ['fecha', 'estado']
     ordering = ['-fecha']
     
+    def get_queryset(self):
+        """
+        Filtrar pedidos según el tipo de usuario:
+        - Si es staff o admin: todos los pedidos
+        - Si es cliente: solo sus propios pedidos
+        """
+        user = self.request.user
+        
+        # Si es admin o staff, mostrar todos los pedidos
+        if user.is_staff or user.is_superuser:
+            return Pedido.objects.all()
+        
+        # Si es cliente, mostrar solo sus pedidos
+        try:
+            cliente = Cliente.objects.get(usuario=user)
+            return Pedido.objects.filter(cliente=cliente)
+        except Cliente.DoesNotExist:
+            # Si el usuario no está asociado a un cliente, no mostrar pedidos
+            return Pedido.objects.none()
+    
     def get_serializer_class(self):
         if self.action == 'create':
             return PedidoCreateSerializer
         elif self.action in ['update', 'partial_update']:
             return PedidoUpdateSerializer
         return PedidoSerializer
+    
+    def perform_create(self, serializer):
+        """
+        Al crear un pedido, asignar automáticamente el cliente asociado al usuario
+        """
+        user = self.request.user
+        
+        # Si el usuario es cliente, asignar automáticamente su cliente
+        if not user.is_staff and not user.is_superuser:
+            try:
+                cliente = Cliente.objects.get(usuario=user)
+                serializer.save(cliente=cliente)
+                return
+            except Cliente.DoesNotExist:
+                pass
+        
+        # Si es admin o no se encontró cliente, comportamiento normal
+        serializer.save()
     
     @action(detail=True, methods=['get'])
     def detalles(self, request, pk=None):
@@ -202,4 +239,113 @@ def register_user(request):
         return Response({
             "error": error_message,
             "detail": "Error interno del servidor al registrar usuario."
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR) 
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def link_user_to_client(request):
+    """
+    Vincular un usuario recién creado a un cliente existente por email
+    """
+    try:
+        email = request.data.get('email')
+        username = request.data.get('username')
+        password = request.data.get('password')
+        
+        if not email or not username or not password:
+            return Response({
+                "error": "Se requiere email, username y password"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Verificar si existe el cliente
+        from .models import Cliente
+        try:
+            cliente = Cliente.objects.get(email=email)
+        except Cliente.DoesNotExist:
+            return Response({
+                "error": "No existe un cliente con este email"
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        # Verificar si el cliente ya tiene usuario
+        if cliente.usuario:
+            return Response({
+                "error": "Este cliente ya está vinculado a un usuario"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Verificar si ya existe un usuario con ese username
+        from django.contrib.auth.models import User
+        if User.objects.filter(username=username).exists():
+            return Response({
+                "error": "Este nombre de usuario ya está en uso"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Crear el usuario y vincularlo al cliente
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password
+        )
+        
+        cliente.usuario = user
+        cliente.save()
+        
+        return Response({
+            "message": "Usuario creado y vinculado al cliente exitosamente",
+            "user": {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email
+            },
+            "cliente": {
+                "id": cliente.id,
+                "nombre": cliente.nombre
+            }
+        }, status=status.HTTP_201_CREATED)
+        
+    except Exception as e:
+        import traceback
+        error_message = str(e)
+        error_traceback = traceback.format_exc()
+        print(f"Error en link_user_to_client: {error_message}")
+        print(f"Traceback: {error_traceback}")
+        return Response({
+            "error": error_message,
+            "detail": "Error interno del servidor al vincular usuario con cliente."
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def current_user(request):
+    """
+    Obtener datos del usuario actual y su cliente asociado (si existe)
+    """
+    user = request.user
+    
+    # Datos del usuario
+    user_data = {
+        'id': user.id,
+        'username': user.username,
+        'email': user.email,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'is_staff': user.is_staff,
+        'is_superuser': user.is_superuser
+    }
+    
+    # Intentar obtener el cliente asociado
+    cliente_data = None
+    try:
+        cliente = Cliente.objects.get(usuario=user)
+        cliente_data = {
+            'id': cliente.id,
+            'nombre': cliente.nombre,
+            'email': cliente.email,
+            'direccion': cliente.direccion
+        }
+    except Cliente.DoesNotExist:
+        pass
+    
+    return Response({
+        'user': user_data,
+        'cliente': cliente_data
+    }) 
