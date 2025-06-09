@@ -1,8 +1,9 @@
 from rest_framework import viewsets, permissions, filters, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
+from django.contrib.auth.models import User
 from .models import Cliente, Producto, Pedido, DetallePedido
 from .serializers import (
     ClienteSerializer, 
@@ -14,7 +15,8 @@ from .serializers import (
     PedidoSerializer,
     PedidoCreateSerializer,
     PedidoUpdateSerializer,
-    DetallePedidoSerializer
+    DetallePedidoSerializer,
+    UserSerializer
 )
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -171,4 +173,19 @@ class PedidoViewSet(viewsets.ModelViewSet):
         detalle.save()
         
         serializer = DetallePedidoSerializer(detalle)
-        return Response(serializer.data, status=status.HTTP_201_CREATED) 
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def register_user(request):
+    """
+    Registrar un nuevo usuario
+    """
+    serializer = UserSerializer(data=request.data)
+    if serializer.is_valid():
+        user = serializer.save()
+        return Response({
+            "user": UserSerializer(user).data,
+            "message": "Usuario creado exitosamente",
+        }, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 

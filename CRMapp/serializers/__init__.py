@@ -1,11 +1,19 @@
-from .base import ClienteSerializer, ProductoSerializer, DetallePedidoSerializer, PedidoSerializer
-from .cliente import ClienteCreateSerializer, ClienteUpdateSerializer
-from .producto import ProductoCreateSerializer, ProductoUpdateSerializer
+from .cliente import ClienteSerializer, ClienteCreateSerializer, ClienteUpdateSerializer
+from .producto import ProductoSerializer, ProductoCreateSerializer, ProductoUpdateSerializer
 from .pedido import PedidoCreateSerializer, PedidoUpdateSerializer, DetallePedidoCreateSerializer
+from .base import UserSerializer, DetallePedidoSerializer, PedidoSerializer
 
 __all__ = [
-    'ClienteSerializer', 'ProductoSerializer', 'DetallePedidoSerializer', 'PedidoSerializer',
-    'ClienteCreateSerializer', 'ClienteUpdateSerializer',
-    'ProductoCreateSerializer', 'ProductoUpdateSerializer',
-    'PedidoCreateSerializer', 'PedidoUpdateSerializer', 'DetallePedidoCreateSerializer'
+    'ClienteSerializer',
+    'ClienteCreateSerializer',
+    'ClienteUpdateSerializer',
+    'ProductoSerializer',
+    'ProductoCreateSerializer',
+    'ProductoUpdateSerializer',
+    'PedidoSerializer',
+    'PedidoCreateSerializer',
+    'PedidoUpdateSerializer',
+    'DetallePedidoSerializer',
+    'DetallePedidoCreateSerializer',
+    'UserSerializer'
 ] 

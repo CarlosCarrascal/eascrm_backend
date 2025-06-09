@@ -1,7 +1,9 @@
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 class Cliente(models.Model):
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='cliente')
     nombre = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
     direccion = models.TextField()

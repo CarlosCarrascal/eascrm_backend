@@ -19,6 +19,9 @@ urlpatterns = [
     # Admin API URLs
     path('admin/api/producto/<int:producto_id>/precio/', views.get_producto_precio, name='get_producto_precio'),
     
+    # Registro de usuarios
+    path('api/register/', api_views.register_user, name='register_user'),
+    
     # Redirige la página principal al admin
     path('', views.home, name='home'),
 ]
