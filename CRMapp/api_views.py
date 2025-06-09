@@ -24,6 +24,96 @@ class StandardResultsSetPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 100
 
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet para gestionar usuarios del sistema
+    """
+    permission_classes = [permissions.IsAdminUser]
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['username', 'email', 'first_name', 'last_name']
+    ordering_fields = ['username', 'date_joined']
+    ordering = ['username']
+    serializer_class = UserSerializer
+    
+    def get_queryset(self):
+        """
+        Filtrar usuarios según el tipo de usuario:
+        - Si es staff o admin: todos los usuarios
+        - Si es usuario normal: solo su propio usuario
+        """
+        user = self.request.user
+        
+        # Si es admin o staff, mostrar todos los usuarios
+        if user.is_staff or user.is_superuser:
+            return User.objects.all()
+        
+        # Si es usuario normal, mostrar solo su propio usuario
+        return User.objects.filter(id=user.id)
+    
+    def get_permissions(self):
+        """
+        Permitir que los usuarios vean y actualicen su propio perfil
+        """
+        if self.action in ['retrieve', 'update', 'partial_update']:
+            permission_classes = [permissions.IsAuthenticated]
+        else:
+            permission_classes = [permissions.IsAdminUser]
+        return [permission() for permission in permission_classes]
+    
+    def perform_update(self, serializer):
+        """
+        Asegurar que un usuario normal solo pueda actualizar su propio perfil
+        """
+        user = self.request.user
+        if not (user.is_staff or user.is_superuser) and self.get_object().id != user.id:
+            raise permissions.exceptions.PermissionDenied("No tienes permiso para actualizar este usuario")
+        serializer.save()
+    
+    @action(detail=True, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def cliente(self, request, pk=None):
+        """
+        Obtener el cliente asociado a un usuario específico
+        """
+        user = self.get_object()
+        
+        # Verificar permisos
+        if not (request.user.is_staff or request.user.is_superuser) and request.user.id != user.id:
+            return Response({"error": "No tienes permiso para ver este cliente"}, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            cliente = Cliente.objects.get(usuario=user)
+            from .serializers import ClienteSerializer
+            serializer = ClienteSerializer(cliente, context={'request': request})
+            return Response(serializer.data)
+        except Cliente.DoesNotExist:
+            return Response({"error": "No hay cliente asociado a este usuario"}, status=status.HTTP_404_NOT_FOUND)
+    
+    @action(detail=True, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def pedidos(self, request, pk=None):
+        """
+        Obtener los pedidos asociados a un usuario específico
+        """
+        user = self.get_object()
+        
+        # Verificar permisos
+        if not (request.user.is_staff or request.user.is_superuser) and request.user.id != user.id:
+            return Response({"error": "No tienes permiso para ver estos pedidos"}, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            cliente = Cliente.objects.get(usuario=user)
+            pedidos = Pedido.objects.filter(cliente=cliente)
+            page = self.paginate_queryset(pedidos)
+            
+            if page is not None:
+                serializer = PedidoSerializer(page, many=True, context={'request': request})
+                return self.get_paginated_response(serializer.data)
+                
+            serializer = PedidoSerializer(pedidos, many=True, context={'request': request})
+            return Response(serializer.data)
+        except Cliente.DoesNotExist:
+            return Response({"error": "No hay cliente asociado a este usuario"}, status=status.HTTP_404_NOT_FOUND)
+
 class ClienteViewSet(viewsets.ModelViewSet):
     queryset = Cliente.objects.all()
     permission_classes = [permissions.IsAuthenticated]
