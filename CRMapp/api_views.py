@@ -181,11 +181,25 @@ def register_user(request):
     """
     Registrar un nuevo usuario
     """
-    serializer = UserSerializer(data=request.data)
-    if serializer.is_valid():
-        user = serializer.save()
+    try:
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response({
+                "user": UserSerializer(user).data,
+                "message": "Usuario creado exitosamente",
+            }, status=status.HTTP_201_CREATED)
+        else:
+            # Devolver errores de validación detallados
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        # Capturar cualquier excepción y devolver un mensaje claro
+        import traceback
+        error_message = str(e)
+        error_traceback = traceback.format_exc()
+        print(f"Error en register_user: {error_message}")
+        print(f"Traceback: {error_traceback}")
         return Response({
-            "user": UserSerializer(user).data,
-            "message": "Usuario creado exitosamente",
-        }, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+            "error": error_message,
+            "detail": "Error interno del servidor al registrar usuario."
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR) 

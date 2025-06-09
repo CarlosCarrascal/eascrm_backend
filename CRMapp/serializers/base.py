@@ -9,32 +9,54 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'password', 'first_name', 'last_name', 'direccion')
-        extra_kwargs = {'password': {'write_only': True}}
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'email': {'required': True}
+        }
+    
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Un usuario con este correo electrónico ya existe.")
+        return value
+    
+    def validate_username(self, value):
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("Este nombre de usuario ya está en uso.")
+        return value
     
     def create(self, validated_data):
-        direccion = validated_data.pop('direccion', '')
-        
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data.get('email', ''),
-            password=validated_data['password'],
-            first_name=validated_data.get('first_name', ''),
-            last_name=validated_data.get('last_name', '')
-        )
-        
-        # Crear cliente asociado al usuario
-        nombre_completo = f"{user.first_name} {user.last_name}".strip()
-        if not nombre_completo:
-            nombre_completo = user.username
+        try:
+            direccion = validated_data.pop('direccion', '')
             
-        Cliente.objects.create(
-            usuario=user,
-            nombre=nombre_completo,
-            email=user.email,
-            direccion=direccion
-        )
-        
-        return user
+            # Crear usuario
+            user = User.objects.create_user(
+                username=validated_data['username'],
+                email=validated_data.get('email', ''),
+                password=validated_data['password'],
+                first_name=validated_data.get('first_name', ''),
+                last_name=validated_data.get('last_name', '')
+            )
+            
+            # Crear cliente asociado al usuario
+            try:
+                nombre_completo = f"{user.first_name} {user.last_name}".strip()
+                if not nombre_completo:
+                    nombre_completo = user.username
+                    
+                Cliente.objects.create(
+                    usuario=user,
+                    nombre=nombre_completo,
+                    email=user.email,
+                    direccion=direccion
+                )
+            except Exception as e:
+                # Si falla la creación del cliente, eliminar el usuario para evitar inconsistencias
+                user.delete()
+                raise serializers.ValidationError(f"Error al crear el cliente: {str(e)}")
+            
+            return user
+        except Exception as e:
+            raise serializers.ValidationError(f"Error al registrar usuario: {str(e)}")
 
 class ClienteSerializer(serializers.ModelSerializer):
     foto_url = serializers.SerializerMethodField()
