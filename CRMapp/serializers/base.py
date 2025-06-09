@@ -27,26 +27,34 @@ class UserSerializer(serializers.ModelSerializer):
                 last_name=validated_data.get('last_name', '')
             )
             
-            # Crear cliente asociado al usuario
-            try:
+            # Verificar si ya existe un cliente con este email
+            from ..models import Cliente
+            cliente_existente = Cliente.objects.filter(email=user.email).first()
+            
+            # Si existe un cliente con ese email y no tiene usuario asociado, vincularlo
+            if cliente_existente and not cliente_existente.usuario:
+                cliente_existente.usuario = user
+                cliente_existente.save()
+                return user
+            
+            # Si no existe un cliente con ese email, crear uno nuevo
+            if not cliente_existente:
                 nombre_completo = f"{user.first_name} {user.last_name}".strip()
                 if not nombre_completo:
                     nombre_completo = user.username
                     
-                from ..models import Cliente
                 Cliente.objects.create(
                     usuario=user,
                     nombre=nombre_completo,
                     email=user.email,
                     direccion=direccion
                 )
-            except Exception as e:
-                # Si falla la creación del cliente, eliminar el usuario para evitar inconsistencias
-                user.delete()
-                raise serializers.ValidationError(f"Error al crear el cliente: {str(e)}")
             
             return user
         except Exception as e:
+            # Si ocurre algún error, eliminar el usuario si fue creado
+            if 'user' in locals():
+                user.delete()
             raise serializers.ValidationError(f"Error al registrar usuario: {str(e)}")
 
 class ClienteSerializer(serializers.ModelSerializer):
