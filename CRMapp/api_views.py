@@ -219,6 +219,30 @@ def register_user(request):
     Registrar un nuevo usuario
     """
     try:
+        # Verificar primero si ya existe un cliente con ese email
+        email = request.data.get('email')
+        if email:
+            from .models import Cliente
+            if Cliente.objects.filter(email=email).exists():
+                return Response({
+                    "error": "Este correo electrónico ya está registrado como cliente. Por favor, usa otro correo o utiliza la opción de vincular cuenta."
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Verificar si ya existe un usuario con ese email
+        from django.contrib.auth.models import User
+        if User.objects.filter(email=email).exists():
+            return Response({
+                "error": "Un usuario con este correo electrónico ya existe."
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Verificar si ya existe un usuario con ese username
+        username = request.data.get('username')
+        if username and User.objects.filter(username=username).exists():
+            return Response({
+                "error": "Este nombre de usuario ya está en uso."
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Si pasa todas las validaciones, proceder con la creación
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
@@ -257,6 +281,19 @@ def link_user_to_client(request):
                 "error": "Se requiere email, username y password"
             }, status=status.HTTP_400_BAD_REQUEST)
         
+        # Verificar si ya existe un usuario con ese username
+        from django.contrib.auth.models import User
+        if User.objects.filter(username=username).exists():
+            return Response({
+                "error": "Este nombre de usuario ya está en uso"
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+        # Verificar si ya existe un usuario con ese email
+        if User.objects.filter(email=email).exists():
+            return Response({
+                "error": "Este correo electrónico ya está asociado a un usuario"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
         # Verificar si existe el cliente
         from .models import Cliente
         try:
@@ -272,18 +309,13 @@ def link_user_to_client(request):
                 "error": "Este cliente ya está vinculado a un usuario"
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Verificar si ya existe un usuario con ese username
-        from django.contrib.auth.models import User
-        if User.objects.filter(username=username).exists():
-            return Response({
-                "error": "Este nombre de usuario ya está en uso"
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
         # Crear el usuario y vincularlo al cliente
         user = User.objects.create_user(
             username=username,
             email=email,
-            password=password
+            password=password,
+            first_name=request.data.get('first_name', ''),
+            last_name=request.data.get('last_name', '')
         )
         
         cliente.usuario = user

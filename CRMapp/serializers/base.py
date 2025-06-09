@@ -14,23 +14,6 @@ class UserSerializer(serializers.ModelSerializer):
             'email': {'required': True}
         }
     
-    def validate_email(self, value):
-        # Verificar si ya existe un usuario con este email
-        if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError("Un usuario con este correo electrónico ya existe.")
-        
-        # Verificar si ya existe un cliente con este email
-        from ..models import Cliente
-        if Cliente.objects.filter(email=value).exists():
-            raise serializers.ValidationError("Este correo electrónico ya está registrado como cliente. Por favor, usa otro correo.")
-        
-        return value
-    
-    def validate_username(self, value):
-        if User.objects.filter(username=value).exists():
-            raise serializers.ValidationError("Este nombre de usuario ya está en uso.")
-        return value
-    
     def create(self, validated_data):
         try:
             direccion = validated_data.pop('direccion', '')
@@ -50,6 +33,7 @@ class UserSerializer(serializers.ModelSerializer):
                 if not nombre_completo:
                     nombre_completo = user.username
                     
+                from ..models import Cliente
                 Cliente.objects.create(
                     usuario=user,
                     nombre=nombre_completo,
