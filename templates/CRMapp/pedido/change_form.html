@@ -1,0 +1,202 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/forms.css' %}">
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script type="text/javascript" src="{% static 'admin/js/jquery.formset.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <div class="form-header-icon">
+            <i class="fas fa-shopping-cart"></i>
+        </div>
+        <div class="form-header-content">
+            <h1>
+                {% if add %}
+                    {% trans 'Crear nuevo pedido' %}
+                {% else %}
+                    {% trans 'Editar pedido' %} #{{ original.id }}
+                {% endif %}
+            </h1>
+        </div>
+    </div>
+
+    <form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="{{ form_url }}" method="post" id="{{ opts.model_name }}_form" novalidate>
+        {% csrf_token %}
+        {% block form_top %}{% endblock %}
+        
+        <div class="form-sections">
+            <div class="form-section">
+                <h2><i class="fas fa-user"></i> {% trans "Información del Cliente" %}</h2>
+                
+                {% if errors %}
+                <div class="errornote">
+                    {% if errors|length == 1 %}{% trans "Por favor, corrige el error debajo." %}{% else %}{% trans "Por favor, corrige los errores debajo." %}{% endif %}
+                </div>
+                {% endif %}
+                
+                <div class="form-row">
+                    {{ adminform.form.cliente.errors }}
+                    <label for="{{ adminform.form.cliente.id_for_label }}">{{ adminform.form.cliente.label }}:</label>
+                    {{ adminform.form.cliente }}
+                </div>
+                
+                <div class="form-row">
+                    {{ adminform.form.fecha.errors }}
+                    <label for="{{ adminform.form.fecha.id_for_label }}">{{ adminform.form.fecha.label }}:</label>
+                    {{ adminform.form.fecha }}
+                </div>
+                
+                <div class="form-row">
+                    {{ adminform.form.estado.errors }}
+                    <label for="{{ adminform.form.estado.id_for_label }}">{{ adminform.form.estado.label }}:</label>
+                    {{ adminform.form.estado }}
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h2><i class="fas fa-list"></i> {% trans "Productos del Pedido" %}</h2>
+                
+                <div class="inline-group" id="detallepedido_set-group">
+                    <div class="tabular inline-related">
+                        <fieldset class="module">
+                            <h2>{% trans "Detalles del Pedido" %}</h2>
+                            {{ adminform.form.detalles.management_form }}
+                            
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>{% trans "Producto" %}</th>
+                                        <th>{% trans "Cantidad" %}</th>
+                                        <th>{% trans "Precio Unitario" %}</th>
+                                        <th>{% trans "Subtotal" %}</th>
+                                        <th>{% trans "Eliminar" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="detallepedido_set-tbody">
+                                    {% for form in adminform.form.detalles.forms %}
+                                    <tr class="form-row {% cycle 'row1' 'row2' %} {% if form.instance.pk %}has_original{% endif %}" id="{{ adminform.form.detalles.prefix }}-{{ forloop.counter0 }}">
+                                        <td>
+                                            {{ form.id }}
+                                            {{ form.producto.errors }}
+                                            {{ form.producto }}
+                                        </td>
+                                        <td>
+                                            {{ form.cantidad.errors }}
+                                            {{ form.cantidad }}
+                                        </td>
+                                        <td>
+                                            {{ form.precio_unitario.errors }}
+                                            {{ form.precio_unitario }}
+                                        </td>
+                                        <td class="subtotal">
+                                            <span class="subtotal-value">$0.00</span>
+                                        </td>
+                                        <td>
+                                            {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            
+                            <div class="add-row">
+                                <a href="javascript:void(0)" class="add-detalle-row">
+                                    <i class="fas fa-plus"></i> {% trans "Añadir producto" %}
+                                </a>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h2><i class="fas fa-money-bill-wave"></i> {% trans "Resumen del Pedido" %}</h2>
+                
+                <div class="pedido-resumen">
+                    <div class="resumen-item">
+                        <div class="resumen-label">{% trans "Total" %}:</div>
+                        <div class="resumen-value">$<span id="pedido-total">0.00</span></div>
+                    </div>
+                </div>
+                
+                <div class="form-row hidden">
+                    {{ adminform.form.total.errors }}
+                    {{ adminform.form.total }}
+                </div>
+            </div>
+        </div>
+        
+        {% block submit_buttons_bottom %}
+        <div class="submit-row">
+            <input type="submit" value="{% trans 'Guardar' %}" class="default" name="_save">
+            {% if not add %}
+                <p class="deletelink-box"><a href="{% url opts|admin_urlname:'delete' original.pk|admin_urlquote %}" class="deletelink">{% trans "Eliminar" %}</a></p>
+            {% endif %}
+            <input type="submit" value="{% trans 'Guardar y añadir otro' %}" name="_addanother">
+            <input type="submit" value="{% trans 'Guardar y continuar editando' %}" name="_continue">
+        </div>
+        {% endblock %}
+    </form>
+</div>
+
+<script type="text/javascript">
+    (function($) {
+        $(document).ready(function() {
+            // Inicializar formsets dinámicos
+            $('.add-detalle-row').click(function() {
+                var formCount = parseInt($('#id_detalles-TOTAL_FORMS').val());
+                var rowHtml = $('#detallepedido_set-tbody tr:first').clone(true);
+                
+                // Actualizar los IDs y nombres de los campos
+                rowHtml.attr('id', 'detalles-' + formCount);
+                rowHtml.find(':input').each(function() {
+                    var name = $(this).attr('name').replace('-0-', '-' + formCount + '-');
+                    var id = 'id_' + name;
+                    $(this).attr({'name': name, 'id': id}).val('').removeAttr('checked');
+                });
+                
+                // Limpiar valores
+                rowHtml.find('.subtotal-value').text('$0.00');
+                
+                // Añadir a la tabla
+                $('#detallepedido_set-tbody').append(rowHtml);
+                
+                // Actualizar contador de formularios
+                $('#id_detalles-TOTAL_FORMS').val(formCount + 1);
+            });
+            
+            // Calcular subtotales y total
+            function calcularTotal() {
+                var total = 0;
+                $('#detallepedido_set-tbody tr').each(function() {
+                    var cantidad = parseFloat($(this).find('input[name$="-cantidad"]').val()) || 0;
+                    var precio = parseFloat($(this).find('input[name$="-precio_unitario"]').val()) || 0;
+                    var subtotal = cantidad * precio;
+                    
+                    $(this).find('.subtotal-value').text('$' + subtotal.toFixed(2));
+                    total += subtotal;
+                });
+                
+                $('#pedido-total').text(total.toFixed(2));
+                $('#id_total').val(total.toFixed(2));
+            }
+            
+            // Eventos para recalcular
+            $(document).on('change', 'input[name$="-cantidad"], input[name$="-precio_unitario"]', function() {
+                calcularTotal();
+            });
+            
+            // Inicializar
+            calcularTotal();
+        });
+    })(django.jQuery);
+</script>
+{% endblock %} 

@@ -1,0 +1,51 @@
+{% extends "base/base.html" %}
+{% load i18n static %}
+
+{% block title %}{{ title }} | EasyCRM Admin{% endblock %}
+
+{% block page_title %}{{ title|default:"Panel de Administración" }}{% endblock %}
+
+{% block bodyclass %}{{ block.super }} easycrm-site{% endblock %}
+
+{% block header %}
+<header class="main-header">
+    <div class="header-content">
+        <div class="logo">
+            <a href="{% url 'admin:index' %}">
+                <span class="brand-name">EasyCRM</span>
+                <span class="brand-tagline">Gestión de Clientes</span>
+            </a>
+        </div>
+        
+        <div class="user-menu">
+            {% if request.user.is_authenticated %}
+            <div class="dropdown">
+                <button class="btn dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-user-circle"></i>
+                    {{ request.user.username }}
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="userDropdown">
+                    <li><a class="dropdown-item" href="{% url 'admin:password_change' %}"><i class="fas fa-key"></i> Cambiar contraseña</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{% url 'admin:logout' %}"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a></li>
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</header>
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'admin/css/base.css' %}">
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+{% endblock %}
+
+{% block extrajs %}
+{{ block.super }}
+{% endblock %}

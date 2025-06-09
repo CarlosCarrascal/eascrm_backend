@@ -1,0 +1,253 @@
+{% extends 'admin/base_site.html' %}
+{% load static jazzmin humanize %}
+
+{% block title %}
+  Detalle del Pedido: #{{ pedido.id }} - {{ block.super }}
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  html {
+    height: 100%;
+  }
+  body {
+    background-color: #f4f6f9;
+    color: #495057;
+    margin: 0;
+  }
+  .wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .content-wrapper {
+    flex: 1 0 auto;
+    /* padding-bottom: 60px; Ensure footer doesn't overlap if not sticky enough */
+  }
+  .main-footer {
+    flex-shrink: 0;
+    background-color: #fff; /* Ensure footer has a background */
+    border-top: 1px solid #dee2e6;
+  }
+  .card {
+    border: 1px solid #dee2e6;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 1.5rem;
+    background-color: #fff;
+  }
+  .col-md-4 > .card:last-of-type,
+  .col-md-5 > .card:last-of-type,
+  .col-md-7 > .card:last-of-type,
+  .col-md-8 > .card:last-of-type {
+    margin-bottom: 0; /* No margin for last card in column */
+  }
+  .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 0.75rem 1.25rem;
+    font-weight: 600;
+  }
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+  .card-title i {
+    color: #6c757d; /* Softer icon color */
+    margin-right: 0.5rem;
+  }
+  .card-body .dl-horizontal dt {
+    font-weight: normal;
+    color: #6c757d;
+    text-align: left;
+    padding-right: 0.5rem;
+  }
+  .card-body .dl-horizontal dd {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+  .table th, .table td {
+    vertical-align: middle;
+    border-top: 1px solid #e9ecef;
+  }
+  .table th {
+    font-weight: 600;
+    background-color: #f8f9fa; /* Light header for table */
+  }
+  .table tfoot th, .table tfoot td {
+    font-weight: bold;
+    background-color: #e9ecef; /* Slightly darker footer for table */
+    border-top: 2px solid #dee2e6;
+  }
+  .table-hover tbody tr:hover {
+    background-color: #f1f3f5;
+  }
+  .status-badge {
+    font-size: 0.85em;
+    padding: 0.4em 0.65em;
+    text-transform: capitalize;
+    font-weight: 500;
+  }
+  .client-info a {
+    font-weight: 500;
+    color: var(--jazzmin-primary-color, #007bff);
+  }
+  .client-info a:hover {
+    text-decoration: underline;
+  }
+  .content-header {
+    padding: 15px 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+    background-color: #fff;
+    margin-bottom: 1.5rem; /* Space below header */
+  }
+  .content-header h1 {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 0;
+  }
+  .breadcrumb {
+    background-color: transparent;
+    padding: 0;
+    margin-bottom: 0;
+  }
+  .breadcrumb-item a {
+    color: var(--jazzmin-primary-color, #007bff);
+  }
+  .btn-sm i, .btn-xs i {
+    margin-right: 0.3rem;
+  }
+  .action-buttons .btn {
+      margin-left: 0.5rem;
+  }
+</style>
+{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block content %}
+{% get_jazzmin_ui_tweaks as jazzmin_ui %}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-12">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'admin:index' %}"><i class="fas fa-tachometer-alt"></i> Inicio</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admin:CRMapp_pedido_changelist' %}">Pedidos</a></li>
+                    <li class="breadcrumb-item active">Detalle del Pedido: #{{ pedido.id }}</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-md-12">
+            <!-- Información del Pedido Card -->
+            <div class="card card-primary card-outline mb-4">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-receipt"></i> Información del Pedido</h3>
+                    <div class="card-tools">
+                        <a href="{% url 'admin:CRMapp_pedido_change' pedido.pk %}" class="btn btn-outline-primary btn-sm mr-1">
+                            <i class="fas fa-edit mr-1"></i> Editar
+                        </a>
+                        <a href="{% url 'admin:CRMapp_pedido_changelist' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-list mr-1"></i> Volver al Listado
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <dl class="row dl-horizontal mb-0">
+                        <dt class="col-sm-4">ID Pedido:</dt>
+                        <dd class="col-sm-8">#{{ pedido.id }}</dd>
+
+                        <dt class="col-sm-4">Cliente:</dt>
+                        <dd class="col-sm-8 client-info">
+                            {% if pedido.cliente %}
+                                <a href="{% url 'admin:CRMapp_cliente_detail' pedido.cliente.pk %}">{{ pedido.cliente.nombre }}</a>
+                                <a href="{% url 'admin:CRMapp_cliente_change' pedido.cliente.pk %}" class="text-muted ml-1" title="Editar Cliente"><small><i class="fas fa-sm fa-pencil-alt"></i></small></a>
+                            {% else %}
+                                <span class="text-muted">Cliente no especificado</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4">Fecha Pedido:</dt>
+                        <dd class="col-sm-8">{{ pedido.fecha|date:"d/m/Y H:i" }} <small class="text-muted">({{ pedido.fecha|naturaltime }})</small></dd>
+
+                        <dt class="col-sm-4">Actualizado:</dt>
+                        <dd class="col-sm-8">{{ pedido.fecha_actualizacion|date:"d/m/Y H:i" }} <small class="text-muted">({{ pedido.fecha_actualizacion|naturaltime }})</small></dd>
+
+                        <dt class="col-sm-4">Estado:</dt>
+                        <dd class="col-sm-8">
+                            {% if pedido.estado == 'pendiente' %}
+                                <span class="badge badge-warning status-badge"><i class="fas fa-clock mr-1"></i> {{ pedido.get_estado_display }}</span>
+                            {% elif pedido.estado == 'en_proceso' %}
+                                <span class="badge badge-info status-badge"><i class="fas fa-cogs mr-1"></i> {{ pedido.get_estado_display }}</span>
+                            {% elif pedido.estado == 'completado' %}
+                                <span class="badge badge-success status-badge"><i class="fas fa-check-circle mr-1"></i> {{ pedido.get_estado_display }}</span>
+                            {% elif pedido.estado == 'cancelado' %}
+                                <span class="badge badge-danger status-badge"><i class="fas fa-times-circle mr-1"></i> {{ pedido.get_estado_display }}</span>
+                            {% else %}
+                                <span class="badge badge-secondary status-badge">{{ pedido.get_estado_display }}</span>
+                            {% endif %}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-12">
+            <!-- Detalles del Pedido Card -->
+            <div class="card card-info card-outline mb-4">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-shopping-cart"></i> Artículos del Pedido</h3>
+                </div>
+                <div class="card-body p-0">
+                    {% if detalles_pedido %}
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th class="text-right">Cantidad</th>
+                                        <th class="text-right">Precio Unit.</th>
+                                        <th class="text-right">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for detalle in detalles_pedido %}
+                                        <tr>
+                                            <td>
+                                                <a href="{% url 'admin:CRMapp_producto_detail' detalle.producto.pk %}" class="font-weight-bold">{{ detalle.producto.nombre }}</a>
+                                                {% if detalle.producto.descripcion %}
+                                                    <br><small class="text-muted">{{ detalle.producto.descripcion|truncatewords:10 }}</small>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-right">{{ detalle.cantidad }}</td>
+                                            <td class="text-right">${{ detalle.precio_unitario|floatformat:2|intcomma }}</td>
+                                            <td class="text-right font-weight-bold">${{ detalle.subtotal|floatformat:2|intcomma }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="3" class="text-right h5" style="vertical-align: middle;">Total del Pedido:</th>
+                                        <td class="text-right h4 text-success" style="vertical-align: middle;">${{ pedido.total|floatformat:2|intcomma }}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="p-4 text-center">
+                            <i class="fas fa-shopping-basket fa-3x text-muted mb-2"></i>
+                            <p class="text-muted mb-0">Este pedido no tiene artículos.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

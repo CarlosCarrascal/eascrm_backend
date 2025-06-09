@@ -1,0 +1,306 @@
+{% extends 'admin/base_site.html' %}
+{% load static jazzmin humanize %}
+
+{% block title %}Detalle Cliente: {{ cliente.nombre_completo|default:cliente.nombre }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  html {
+    height: 100%; /* Puede ser útil para algunos cálculos de altura */
+  }
+  body {
+    background-color: #f4f6f9; /* Color de fondo general más neutro */
+    color: #495057; /* Color de texto principal */
+    margin: 0; /* Importante para evitar espacios inesperados y asegurar que 100vh funcione bien */
+  }
+
+  /* Hacemos que .wrapper (contenedor principal de Jazzmin) sea el responsable de la altura y flexbox */
+  .wrapper {
+    min-height: 100vh; /* Ocupa al menos toda la altura de la ventana gráfica */
+    display: flex;
+    flex-direction: column; /* Organiza sus hijos (.content-wrapper, .main-footer) verticalmente */
+  }
+
+  .content-wrapper { /* El área principal de contenido, dentro de .wrapper */
+    flex: 1 0 auto; /* Permite que esta área crezca, empujando el footer hacia abajo */
+  }
+
+  .main-footer { /* El pie de página, dentro de .wrapper */
+    flex-shrink: 0; /* Evita que el footer se encoja si el contenido es mucho */
+  }
+  .card {
+    border: 1px solid #dee2e6; /* Borde sutil para las tarjetas */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 1rem; /* Reducido para mayor compacidad */
+    background-color: #fff;
+  }
+  .col-md-8 > .card:last-child {
+    margin-bottom: 0; /* Eliminar margen inferior de la última tarjeta en la columna derecha */
+  }
+  .card-header {
+    background-color: #f8f9fa; /* Encabezado de tarjeta muy claro */
+    border-bottom: 1px solid #dee2e6;
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card-header .card-title {
+    font-weight: 500;
+    font-size: 1.1rem;
+    color: #343a40;
+  }
+  .card-header .card-title i {
+    color: #6c757d; /* Iconos en encabezado más sutiles */
+    margin-right: 0.5rem;
+  }
+  .card-header .btn { /* For buttons in card-header, like Edit/Listado */
+    font-size: 0.8rem; 
+    padding: 0.25rem 0.75rem;
+  }
+  .table th, .table td {
+    vertical-align: middle;
+    border-top: 1px solid #e9ecef;
+    padding: 0.75rem;
+  }
+  .table th {
+    font-weight: 500;
+    color: #495057;
+    background-color: #f8f9fa;
+  }
+  .table-hover tbody tr:hover {
+    background-color: #e9ecef;
+  }
+  .breadcrumb-item a {
+    color: var(--jazzmin-navbar-link-color, #007bff);
+  }
+
+  /* Styles for main entity card (product, client, etc.) */
+  .entity-main-card .card-body {
+    padding: 1rem;
+  }
+  .image-display-area { /* Common for product and client */
+    width: 100%;
+    height: 280px; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    border: 1px solid #dee2e6;
+    background-color: #f8f9fa; 
+    border-radius: 0.25rem;
+    overflow: hidden; 
+  }
+  .entity-image { /* Common for product and client images */
+    max-width: 100%;
+    max-height: 100%; 
+    object-fit: cover; /* 'cover' for client photos, 'contain' might be for products */
+  }
+  .entity-no-image { /* Common for product and client placeholder */
+    width: 100%;
+    height: 100%; 
+    display: flex;
+    flex-direction: column; 
+    align-items: center;
+    justify-content: center;
+    color: #adb5bd;
+    text-align: center;
+  }
+  .entity-no-image i { /* Icon within placeholder */
+    font-size: 3.5rem; 
+    line-height: 1;
+    margin-bottom: 1rem; 
+  }
+  .entity-no-image p { /* Text within placeholder */
+    font-size: 0.9rem; 
+    color: #868e96;
+    margin-top: 0;
+    line-height: 1.4;
+  }
+  .entity-name { /* Common for product and client name titles */
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #343a40;
+    margin-bottom: 0.5rem;
+  }
+  /* Specific to product price, kept for reference if needed */
+  .product-price {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #28a745; 
+    margin-bottom: 0.75rem;
+  }
+  /* For dl lists (stock info, client additional info) */
+  .dl-info-custom dt {
+    font-weight: 500;
+    color: #6c757d;
+    padding-right: 0.5em;
+  }
+  .dl-info-custom dd {
+    font-weight: normal;
+  }
+  /* For status badges (stock, order status) */
+  .status-badge-custom {
+    font-size: 0.8em;
+    padding: 0.3em 0.6em;
+    border-radius: 0.2rem;
+    font-weight: 500;
+  }
+  .badge-status-disponible { background-color: #e4f6e8; color: #28a745; } 
+  .badge-status-pocas { background-color: #e7f3fe; color: #007bff; }    
+  .badge-status-bajo { background-color: #fff3cd; color: #ffc107; }     
+  .badge-status-agotado { background-color: #f8d7da; color: #dc3545; }   
+
+  .description-card .card-body { 
+    line-height: 1.6;
+  }
+  .entity-name {
+    text-align: center;
+  }
+  .client-contact-info p {
+    font-size: 1rem;
+    color: #495057;
+    margin-bottom: 0.25rem;
+    text-align: center; 
+  }
+  .client-contact-info p i {
+    color: #6c757d;
+    margin-right: 0.75rem;
+    width: 20px; 
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+{% get_jazzmin_ui_tweaks as jazzmin_ui %}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-12">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'admin:index' %}">Inicio</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admin:CRMapp_cliente_changelist' %}">Clientes</a></li>
+                    <li class="breadcrumb-item active">Detalle: {{ cliente.nombre_completo|default:cliente.nombre }}</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-4">
+            <!-- Tarjeta Principal del Cliente -->
+            <div class="card entity-main-card">
+                <div class="card-body">
+                    <div class="image-display-area">
+                        {% if cliente.foto %}
+                            <img src="{{ cliente.foto.url }}" alt="Foto de {{ cliente.nombre_completo|default:cliente.nombre }}" class="entity-image">
+                        {% else %}
+                            <div class="entity-no-image">
+                                <i class="fas fa-user"></i>
+                                <p>Sin foto disponible</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <h2 class="entity-name">{{ cliente.nombre_completo|default:cliente.nombre }}</h2>
+                    <div class="client-contact-info">
+                        {% if cliente.email %}
+                            <p><i class="fas fa-envelope"></i>{{ cliente.email }}</p>
+                        {% endif %}
+                        {% if cliente.telefono %}
+                            <p><i class="fas fa-phone"></i>{{ cliente.telefono }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <!-- Tarjeta Historial de Pedidos -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-history"></i>Historial de Pedidos</h3>
+                    <div class="card-tools">
+                        <a href="{% url 'admin:CRMapp_cliente_change' cliente.pk %}" class="btn btn-primary btn-sm mr-1">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                        <a href="{% url 'admin:CRMapp_cliente_changelist' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-list"></i> Listado
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if pedidos_cliente %}
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>ID Pedido</th>
+                                        <th>Fecha</th>
+                                        <th>Estado</th>
+                                        <th class="text-right">Total</th>
+                                        <th class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for pedido_item in pedidos_cliente %}
+                                        <tr>
+                                            <td><a href="{% url 'admin:CRMapp_pedido_detail' pedido_item.pk %}#{{ pedido_item.id }}">#{{ pedido_item.id }}</a></td>
+                                            <td>{{ pedido_item.fecha|date:"d/m/Y H:i" }}</td>
+                                            <td>
+                                                {% if pedido_item.estado == 'pendiente' %}
+                                                    <span class="badge status-badge-custom badge-status-bajo"><i class="fas fa-clock mr-1"></i> {{ pedido_item.get_estado_display }}</span>
+                                                {% elif pedido_item.estado == 'en_proceso' %}
+                                                    <span class="badge status-badge-custom badge-status-pocas"><i class="fas fa-cogs mr-1"></i> {{ pedido_item.get_estado_display }}</span>
+                                                {% elif pedido_item.estado == 'completado' %}
+                                                    <span class="badge status-badge-custom badge-status-disponible"><i class="fas fa-check-circle mr-1"></i> {{ pedido_item.get_estado_display }}</span>
+                                                {% elif pedido_item.estado == 'cancelado' %}
+                                                    <span class="badge status-badge-custom badge-status-agotado"><i class="fas fa-times-circle mr-1"></i> {{ pedido_item.get_estado_display }}</span>
+                                                {% else %}
+                                                    <span class="badge status-badge-custom badge-secondary">{{ pedido_item.get_estado_display }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-right font-weight-bold">${{ pedido_item.total|floatformat:2|intcomma }}</td>
+                                            <td class="text-center">
+                                                <a href="{% url 'admin:CRMapp_pedido_detail' pedido_item.pk %}" class="btn btn-xs btn-outline-primary" title="Ver Detalle del Pedido">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-center text-muted p-4">Este cliente aún no tiene pedidos registrados.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Tarjeta Información Adicional Cliente (Movida aquí) -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-info-circle"></i>Información Adicional</h3>
+                </div>
+                <div class="card-body">
+                    <dl class="row dl-info-custom mb-0">
+                        <dt class="col-sm-4"><i class="fas fa-map-marker-alt mr-1"></i>Dirección:</dt>
+                        <dd class="col-sm-8">{% if cliente.direccion %}{{ cliente.direccion|linebreaksbr }}{% else %}<span class="text-muted">No especificada</span>{% endif %}</dd>
+                        
+                        <dt class="col-sm-4"><i class="fas fa-calendar-alt mr-1"></i>Cliente desde:</dt>
+                        <dd class="col-sm-8">{{ cliente.fecha_registro|date:"d M Y" }}</dd>
+                        
+                        <dt class="col-sm-4"><i class="far fa-clock mr-1"></i>Antigüedad:</dt>
+                        <dd class="col-sm-8">{{ cliente.fecha_registro|naturaltime }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+{% endblock %}

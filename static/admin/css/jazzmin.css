@@ -1,0 +1,477 @@
+/* 
+  Jazzmin Minimalist Theme
+  Un tema elegante y minimalista para Django Admin
+*/
+
+/* Fuente y colores base */
+:root {
+  --primary-color: #2563eb;
+  --secondary-color: #64748b;
+  --success-color: #10b981;
+  --danger-color: #ef4444;
+  --warning-color: #f59e0b;
+  --info-color: #3b82f6;
+  --light-color: #f8fafc;
+  --dark-color: #0f172a;
+  --text-color: #1e293b;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Estilos globales */
+body {
+  font-family: var(--font-sans);
+  color: var(--text-color);
+  background-color: #f9fafb;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Encabezado principal */
+.main-header {
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  background-color: white;
+}
+
+.main-header .navbar-nav .nav-link {
+  padding: 0.75rem 1rem;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.main-header .navbar-nav .nav-link:hover {
+  color: var(--primary-color);
+}
+
+/* Logo y marca */
+.brand-link {
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 600;
+  color: var(--text-color);
+  font-size: 1.15rem;
+  padding: 1rem;
+}
+
+/* Sidebar */
+.main-sidebar {
+  background-color: white;
+  box-shadow: var(--shadow);
+}
+
+.sidebar {
+  padding: 0;
+}
+
+.sidebar-light-primary .nav-sidebar > .nav-item > .nav-link.active {
+  background-color: rgba(37, 99, 235, 0.1);
+  color: var(--primary-color);
+  font-weight: 500;
+  border-left: 3px solid var(--primary-color);
+}
+
+.nav-sidebar .nav-link {
+  color: var(--text-color);
+  padding: 0.75rem 1rem;
+  border-left: 3px solid transparent;
+}
+
+.nav-sidebar .nav-link:hover {
+  color: var(--primary-color);
+  background-color: rgba(37, 99, 235, 0.05);
+}
+
+.nav-sidebar .nav-header {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1rem 1rem 0.5rem;
+  font-weight: 600;
+}
+
+/* Página principal */
+.content-wrapper {
+  background-color: #f9fafb;
+}
+
+.content-header {
+  padding: 2rem 0.5rem 1rem;
+}
+
+.content-header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+/* Cards */
+.card {
+  border: none;
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow);
+  margin-bottom: 1.5rem;
+}
+
+.card-header {
+  background-color: white;
+  border-bottom: 1px solid var(--border-color);
+  padding: 1rem 1.25rem;
+  font-weight: 600;
+}
+
+.card-body {
+  padding: 1.25rem;
+}
+
+.card-footer {
+  background-color: white;
+  border-top: 1px solid var(--border-color);
+  padding: 1rem 1.25rem;
+}
+
+/* Tablas */
+.table {
+  color: var(--text-color);
+}
+
+.table thead th {
+  background-color: #f8fafc;
+  border-top: none;
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.75rem 1rem;
+  vertical-align: middle;
+}
+
+.table td {
+  padding: 0.75rem 1rem;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.table tbody tr:hover {
+  background-color: rgba(37, 99, 235, 0.03);
+}
+
+/* Paginación */
+.pagination {
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.page-link {
+  color: var(--primary-color);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 0.75rem;
+}
+
+.page-item.active .page-link {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.page-link:focus {
+  box-shadow: none;
+}
+
+/* Formularios */
+.form-control {
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+}
+
+label {
+  font-weight: 500;
+  color: var(--text-color);
+  margin-bottom: 0.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+/* Botones */
+.btn {
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+}
+
+.btn-outline-primary {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+/* Footer */
+.main-footer {
+  background-color: white;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  padding: 1rem;
+}
+
+/* Notificaciones y alertas */
+.alert {
+  border: none;
+  border-radius: 0.375rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.alert-success {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #065f46;
+}
+
+.alert-danger {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #991b1b;
+}
+
+.alert-warning {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #92400e;
+}
+
+.alert-info {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #1e40af;
+}
+
+/* Iconos */
+.nav-icon {
+  opacity: 0.8;
+  margin-right: 0.5rem;
+}
+
+/* Textos y tipografía */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+}
+
+/* Mejoras de accesibilidad */
+a:focus, button:focus, input:focus, textarea:focus, select:focus {
+  outline: 2px solid rgba(37, 99, 235, 0.5);
+  outline-offset: 2px;
+}
+
+/* Enlaces */
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+a:hover {
+  color: #1e40af;
+  text-decoration: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .content-header {
+    padding: 1.5rem 0.5rem 1rem;
+  }
+  
+  .card-header {
+    padding: 0.75rem 1rem;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+}
+
+/* Animaciones sutiles */
+.nav-link, .btn, .form-control {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Mejoras de usabilidad */
+.btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%);
+  transform-origin: 50% 50%;
+}
+
+.btn:focus:not(:active)::after {
+  animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(20, 20);
+    opacity: 0;
+  }
+}
+
+/* Corregir espacios en blanco para vistas de lista y detalle */
+.app-CRMapp.model-cliente.change-list .content-wrapper,
+.app-CRMapp.model-producto.change-list .content-wrapper,
+.app-CRMapp.model-pedido.change-list .content-wrapper,
+.app-CRMapp.model-cliente.change-form .content-wrapper,
+.app-CRMapp.model-producto.change-form .content-wrapper,
+.app-CRMapp.model-pedido.change-form .content-wrapper {
+    margin-top: 0 !important;
+    padding-top: 15px !important;
+}
+
+/* Corregir espacio en blanco en el cuerpo de la página */
+body.app-CRMapp .wrapper {
+    padding-top: 0 !important;
+}
+
+/* Arreglar margen superior excesivo en contenedores */
+.content-wrapper {
+    margin-top: 0 !important;
+}
+
+/* Arreglar espacio en vista colapsada del sidebar */
+body.sidebar-collapse .content-wrapper {
+    margin-left: 0 !important;
+}
+
+/* Asegurar que las tablas se muestran correctamente */
+.app-CRMapp .results {
+    margin-top: 0 !important;
+}
+
+
+
+/* Corregir visualización en tema por defecto */
+.theme-default.sidebar-mini.layout-fixed .main-sidebar {
+    margin-top: 0 !important;
+}
+
+/* Ajustar el contenedor principal en colapso de sidebar */
+.sidebar-collapse .content-wrapper, 
+.sidebar-collapse .main-footer {
+    margin-left: 0 !important;
+}
+
+/* Reglas para container-fluid en Jazzmin */
+body.app-CRMapp .container-fluid,
+body.app-CRMapp .wrapper .container-fluid,
+body.app-CRMapp .content-wrapper .container-fluid {
+    padding: 0 !important;
+    margin: 0 !important;
+    height: auto !important;
+}
+
+/* Asegurar que el contenedor no genera espacio adicional */
+.layout-fixed .container-fluid,
+.layout-navbar-fixed .container-fluid {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Ajustes para el tema default con container-fluid */
+.theme-default .content-wrapper .container-fluid {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Sobreescribir cualquier propiedad inline */
+[class*="container-fluid"] {
+    padding: 0 !important;
+    margin: 0 !important;
+} 
+
+/* Custom styles for action buttons in tables */
+.acciones-botones .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem 0.6rem;
+  border-radius: 0.375rem;
+  margin: 0 0.25rem;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: all 0.2s ease-in-out;
+}
+
+.acciones-botones .button i {
+  font-size: 0.9em; /* Adjust icon size if needed */
+}
+
+.acciones-botones .viewlink {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+.acciones-botones .viewlink i {
+  color: white; /* Icono blanco para el botón de ver */
+}
+.acciones-botones .viewlink:hover {
+  background-color: #1e40af; /* Azul más oscuro al pasar el ratón */
+  border-color: #1e40af;
+}
+.acciones-botones .viewlink:hover i {
+  color: white;
+}
+
+.acciones-botones .editlink {
+  background-color: var(--warning-color);
+  border-color: var(--warning-color);
+}
+.acciones-botones .editlink i {
+  color: white; /* Icono blanco para el botón de editar */
+}
+.acciones-botones .editlink:hover {
+  background-color: #d97706; /* Naranja más oscuro al pasar el ratón */
+  border-color: #d97706;
+}
+.acciones-botones .editlink:hover i {
+  color: white;
+}
+
+.acciones-botones .deletelink {
+  background-color: #dc3545; /* Rojo de Bootstrap para 'danger' */
+  border-color: #dc3545;
+}
+.acciones-botones .deletelink i {
+  color: white !important; 
+}
+.acciones-botones .deletelink:hover {
+  background-color: #c82333; /* Un rojo más oscuro para el hover */
+  border-color: #c82333;
+}
+.acciones-botones .deletelink:hover i {
+  color: white !important;
+}

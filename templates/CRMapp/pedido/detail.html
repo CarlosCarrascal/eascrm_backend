@@ -1,0 +1,151 @@
+{% extends "shared/detail_view.html" %}
+{% load i18n static %}
+
+{% block model_name %}{% trans "Pedidos" %}{% endblock %}
+{% block object_name %}Pedido #{{ pedido.id }}{% endblock %}
+
+{% block header_icon %}<i class="fas fa-shopping-cart"></i>{% endblock %}
+{% block header_title %}Pedido #{{ pedido.id }}{% endblock %}
+{% block header_subtitle %}{{ pedido.fecha|date:"d/m/Y H:i" }}{% endblock %}
+
+{% block edit_url %}{% url 'admin:CRMapp_pedido_change' pedido.id %}{% endblock %}
+{% block delete_url %}{% url 'admin:CRMapp_pedido_delete' pedido.id %}{% endblock %}
+{% block back_url %}{% url 'admin:CRMapp_pedido_changelist' %}{% endblock %}
+
+{% block detail_content %}
+<div class="detail-section">
+    <h2><i class="fas fa-info-circle"></i> {% trans "Información del Pedido" %}</h2>
+    
+    <div class="pedido-header">
+        <div class="pedido-info">
+            <div class="detail-field">
+                <div class="detail-field-label">{% trans "Cliente" %}</div>
+                <div class="detail-field-value">
+                    <a href="{% url 'admin:CRMapp_cliente_change' pedido.cliente.id %}">
+                        {% if pedido.cliente.foto %}
+                        <img src="{{ pedido.cliente.foto.url }}" alt="{{ pedido.cliente.nombre }}" class="cliente-mini-foto">
+                        {% endif %}
+                        {{ pedido.cliente.nombre }}
+                    </a>
+                </div>
+            </div>
+            
+            <div class="detail-field">
+                <div class="detail-field-label">{% trans "Fecha" %}</div>
+                <div class="detail-field-value">{{ pedido.fecha|date:"d/m/Y H:i" }}</div>
+            </div>
+            
+            <div class="detail-field">
+                <div class="detail-field-label">{% trans "Estado" %}</div>
+                <div class="detail-field-value">
+                    <span class="pedido-estado estado-{{ pedido.estado|lower }}">
+                        {% if pedido.estado == 'pendiente' %}
+                            <i class="fas fa-clock"></i>
+                        {% elif pedido.estado == 'en_proceso' %}
+                            <i class="fas fa-spinner fa-spin"></i>
+                        {% elif pedido.estado == 'completado' %}
+                            <i class="fas fa-check-circle"></i>
+                        {% elif pedido.estado == 'cancelado' %}
+                            <i class="fas fa-times-circle"></i>
+                        {% endif %}
+                        {{ pedido.get_estado_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="pedido-total">
+            <div class="total-label">{% trans "Total" %}</div>
+            <div class="total-value">${{ pedido.total|floatformat:2 }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="detail-section">
+    <h2><i class="fas fa-list"></i> {% trans "Productos" %}</h2>
+    
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>{% trans "Producto" %}</th>
+                <th>{% trans "Precio Unitario" %}</th>
+                <th>{% trans "Cantidad" %}</th>
+                <th class="text-right">{% trans "Subtotal" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detalle in detalles %}
+            <tr>
+                <td>
+                    <a href="{% url 'admin:CRMapp_producto_change' detalle.producto.id %}">
+                        {% if detalle.producto.imagen %}
+                        <img src="{{ detalle.producto.imagen.url }}" alt="{{ detalle.producto.nombre }}" class="producto-mini-imagen">
+                        {% endif %}
+                        {{ detalle.producto.nombre }}
+                    </a>
+                </td>
+                <td>${{ detalle.precio_unitario|floatformat:2 }}</td>
+                <td>{{ detalle.cantidad }}</td>
+                <td class="text-right">${{ detalle.subtotal|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" class="text-right"><strong>{% trans "Total" %}</strong></td>
+                <td class="text-right"><strong>${{ pedido.total|floatformat:2 }}</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<div class="detail-section">
+    <h2><i class="fas fa-history"></i> {% trans "Historial" %}</h2>
+    
+    <div class="timeline">
+        <div class="timeline-item">
+            <div class="timeline-icon">
+                <i class="fas fa-plus-circle"></i>
+            </div>
+            <div class="timeline-content">
+                <h3>{% trans "Pedido Creado" %}</h3>
+                <p>{{ pedido.fecha|date:"d/m/Y H:i" }}</p>
+            </div>
+        </div>
+        
+        {% if pedido.fecha_actualizacion and pedido.fecha_actualizacion != pedido.fecha %}
+        <div class="timeline-item">
+            <div class="timeline-icon">
+                <i class="fas fa-edit"></i>
+            </div>
+            <div class="timeline-content">
+                <h3>{% trans "Última Actualización" %}</h3>
+                <p>{{ pedido.fecha_actualizacion|date:"d/m/Y H:i" }}</p>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if pedido.estado == 'completado' %}
+        <div class="timeline-item">
+            <div class="timeline-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="timeline-content">
+                <h3>{% trans "Pedido Completado" %}</h3>
+                <p>{{ pedido.fecha_actualizacion|date:"d/m/Y H:i" }}</p>
+            </div>
+        </div>
+        {% elif pedido.estado == 'cancelado' %}
+        <div class="timeline-item">
+            <div class="timeline-icon">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <div class="timeline-content">
+                <h3>{% trans "Pedido Cancelado" %}</h3>
+                <p>{{ pedido.fecha_actualizacion|date:"d/m/Y H:i" }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

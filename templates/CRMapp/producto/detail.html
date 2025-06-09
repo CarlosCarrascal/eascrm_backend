@@ -1,0 +1,123 @@
+{% extends "shared/detail_view.html" %}
+{% load i18n static %}
+
+{% block model_name %}{% trans "Productos" %}{% endblock %}
+{% block object_name %}{{ producto.nombre }}{% endblock %}
+
+{% block header_icon %}<i class="fas fa-box"></i>{% endblock %}
+{% block header_title %}{{ producto.nombre }}{% endblock %}
+{% block header_subtitle %}Precio: ${{ producto.precio|floatformat:2 }}{% endblock %}
+
+{% block edit_url %}{% url 'admin:CRMapp_producto_change' producto.id %}{% endblock %}
+{% block delete_url %}{% url 'admin:CRMapp_producto_delete' producto.id %}{% endblock %}
+{% block back_url %}{% url 'admin:CRMapp_producto_changelist' %}{% endblock %}
+
+{% block detail_content %}
+<div class="detail-section">
+    <h2><i class="fas fa-info-circle"></i> {% trans "Información del Producto" %}</h2>
+    
+    <div class="detail-field">
+        <div class="detail-field-label">{% trans "Imagen" %}</div>
+        <div class="detail-field-value">
+            {% if producto.imagen %}
+            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" class="producto-imagen-detail">
+            {% else %}
+            <div class="producto-sin-imagen">
+                <i class="fas fa-image"></i>
+                <p>Sin imagen disponible</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="detail-field">
+        <div class="detail-field-label">{% trans "Nombre" %}</div>
+        <div class="detail-field-value">{{ producto.nombre }}</div>
+    </div>
+    
+    <div class="detail-field">
+        <div class="detail-field-label">{% trans "Precio" %}</div>
+        <div class="detail-field-value precio-destacado">${{ producto.precio|floatformat:2 }}</div>
+    </div>
+    
+    <div class="detail-field">
+        <div class="detail-field-label">{% trans "Stock" %}</div>
+        <div class="detail-field-value">
+            {% if producto.stock <= 0 %}
+            <span class="stock agotado"><i class="fas fa-exclamation-circle"></i> Agotado</span>
+            {% elif producto.stock < 5 %}
+            <span class="stock bajo"><i class="fas fa-exclamation-circle"></i> Bajo ({{ producto.stock }} unidades)</span>
+            {% elif producto.stock < 10 %}
+            <span class="stock medio"><i class="fas fa-check-circle"></i> Medio ({{ producto.stock }} unidades)</span>
+            {% else %}
+            <span class="stock disponible"><i class="fas fa-check-circle"></i> Disponible ({{ producto.stock }} unidades)</span>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="detail-field">
+        <div class="detail-field-label">{% trans "Descripción" %}</div>
+        <div class="detail-field-value">
+            {% if producto.descripcion %}
+            <div class="producto-descripcion">{{ producto.descripcion|linebreaks }}</div>
+            {% else %}
+            <p class="text-muted">Sin descripción</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="detail-section">
+    <h2><i class="fas fa-chart-bar"></i> {% trans "Estadísticas de Ventas" %}</h2>
+    
+    <div class="producto-stats">
+        <div class="producto-stat">
+            <div class="producto-stat-value">{{ ventas_totales }}</div>
+            <div class="producto-stat-label">{% trans "Unidades Vendidas" %}</div>
+        </div>
+        
+        <div class="producto-stat">
+            <div class="producto-stat-value">${{ ingresos_totales|floatformat:2 }}</div>
+            <div class="producto-stat-label">{% trans "Ingresos Generados" %}</div>
+        </div>
+        
+        <div class="producto-stat">
+            <div class="producto-stat-value">{{ ultima_venta|date:"d/m/Y"|default:"N/A" }}</div>
+            <div class="producto-stat-label">{% trans "Última Venta" %}</div>
+        </div>
+    </div>
+</div>
+
+<div class="detail-section">
+    <h2><i class="fas fa-shopping-cart"></i> {% trans "Pedidos Recientes" %}</h2>
+    
+    {% if pedidos_con_producto %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>{% trans "Pedido" %}</th>
+                <th>{% trans "Cliente" %}</th>
+                <th>{% trans "Fecha" %}</th>
+                <th>{% trans "Cantidad" %}</th>
+                <th class="text-right">{% trans "Subtotal" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in pedidos_con_producto %}
+            <tr>
+                <td>
+                    <a href="{% url 'admin:CRMapp_pedido_change' item.pedido.id %}">#{{ item.pedido.id }}</a>
+                </td>
+                <td>{{ item.pedido.cliente.nombre }}</td>
+                <td>{{ item.pedido.fecha|date:"d/m/Y" }}</td>
+                <td>{{ item.cantidad }}</td>
+                <td class="text-right">${{ item.subtotal|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="empty-message">{% trans "Este producto aún no ha sido vendido." %}</p>
+    {% endif %}
+</div>
+{% endblock %} 

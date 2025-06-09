@@ -1,0 +1,83 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/forms.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <div class="form-header-icon">
+            <i class="fas fa-user-tie"></i>
+        </div>
+        <div class="form-header-content">
+            <h1>
+                {% if add %}
+                    {% trans 'Añadir nuevo cliente' %}
+                {% else %}
+                    {% trans 'Editar cliente' %}: {{ original.nombre }}
+                {% endif %}
+            </h1>
+        </div>
+    </div>
+
+    <form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="{{ form_url }}" method="post" id="{{ opts.model_name }}_form" novalidate>
+        {% csrf_token %}
+        {% block form_top %}{% endblock %}
+        
+        <div class="form-sections">
+            <div class="form-section">
+                <h2><i class="fas fa-id-card"></i> {% trans "Información Personal" %}</h2>
+                
+                {% if errors %}
+                <div class="errornote">
+                    {% if errors|length == 1 %}{% trans "Por favor, corrige el error debajo." %}{% else %}{% trans "Por favor, corrige los errores debajo." %}{% endif %}
+                </div>
+                {% endif %}
+                
+                <div class="form-row">
+                    {{ adminform.form.nombre.errors }}
+                    <label for="{{ adminform.form.nombre.id_for_label }}">{{ adminform.form.nombre.label }}:</label>
+                    {{ adminform.form.nombre }}
+                </div>
+                
+                <div class="form-row">
+                    {{ adminform.form.email.errors }}
+                    <label for="{{ adminform.form.email.id_for_label }}">{{ adminform.form.email.label }}:</label>
+                    {{ adminform.form.email }}
+                </div>
+                
+                <div class="form-row">
+                    {{ adminform.form.direccion.errors }}
+                    <label for="{{ adminform.form.direccion.id_for_label }}">{{ adminform.form.direccion.label }}:</label>
+                    {{ adminform.form.direccion }}
+                </div>
+                
+                <div class="form-row">
+                    {{ adminform.form.foto.errors }}
+                    <label for="{{ adminform.form.foto.id_for_label }}">{{ adminform.form.foto.label }}:</label>
+                    {{ adminform.form.foto }}
+                    {% if not add and original.foto %}
+                    <div class="foto-preview">
+                        <img src="{{ original.foto.url }}" alt="{{ original.nombre }}">
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        {% block submit_buttons_bottom %}
+        <div class="submit-row">
+            <input type="submit" value="{% trans 'Guardar' %}" class="default" name="_save">
+            {% if not add %}
+                <p class="deletelink-box"><a href="{% url opts|admin_urlname:'delete' original.pk|admin_urlquote %}" class="deletelink">{% trans "Eliminar" %}</a></p>
+            {% endif %}
+            <input type="submit" value="{% trans 'Guardar y añadir otro' %}" name="_addanother">
+            <input type="submit" value="{% trans 'Guardar y continuar editando' %}" name="_continue">
+        </div>
+        {% endblock %}
+    </form>
+</div>
+{% endblock %} 

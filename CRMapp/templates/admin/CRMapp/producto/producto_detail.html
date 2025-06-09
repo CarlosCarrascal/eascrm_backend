@@ -1,0 +1,280 @@
+{% extends 'admin/base_site.html' %}
+{% load static jazzmin humanize %}
+
+{% block title %}Detalle: {{ producto.nombre }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  html {
+    height: 100%; /* Puede ser útil para algunos cálculos de altura */
+  }
+  body {
+    background-color: #f4f6f9; /* Color de fondo general más neutro */
+    color: #495057; /* Color de texto principal */
+    margin: 0; /* Importante para evitar espacios inesperados y asegurar que 100vh funcione bien */
+  }
+
+  /* Hacemos que .wrapper (contenedor principal de Jazzmin) sea el responsable de la altura y flexbox */
+  .wrapper {
+    min-height: 100vh; /* Ocupa al menos toda la altura de la ventana gráfica */
+    display: flex;
+    flex-direction: column; /* Organiza sus hijos (.content-wrapper, .main-footer) verticalmente */
+  }
+
+  .content-wrapper { /* El área principal de contenido, dentro de .wrapper */
+    flex: 1 0 auto; /* Permite que esta área crezca, empujando el footer hacia abajo */
+  }
+
+  .main-footer { /* El pie de página, dentro de .wrapper */
+    flex-shrink: 0; /* Evita que el footer se encoja si el contenido es mucho */
+  }
+  .card {
+    border: 1px solid #dee2e6; /* Borde sutil para las tarjetas */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 1.5rem;
+    background-color: #fff;
+  }
+  .card-header {
+    background-color: #f8f9fa; /* Encabezado de tarjeta muy claro */
+    border-bottom: 1px solid #dee2e6;
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card-header .card-title {
+    font-weight: 500;
+    font-size: 1.1rem;
+    color: #343a40;
+  }
+  .card-header .card-title i {
+    color: #6c757d; /* Iconos en encabezado más sutiles */
+    margin-right: 0.5rem;
+  }
+  .card-header .btn {
+    font-size: 0.8rem; /* Botones más pequeños */
+    padding: 0.25rem 0.75rem;
+  }
+  .table th, .table td {
+    vertical-align: middle;
+    border-top: 1px solid #e9ecef;
+    padding: 0.75rem;
+  }
+  .table th {
+    font-weight: 500;
+    color: #495057;
+    background-color: #f8f9fa;
+  }
+  .table-hover tbody tr:hover {
+    background-color: #e9ecef;
+  }
+  .breadcrumb-item a {
+    color: var(--jazzmin-navbar-link-color, #007bff);
+  }
+  .product-main-card .card-body {
+    padding: 1rem;
+  }
+  /* Contenedor para la imagen/placeholder con altura fija */
+  .image-display-area {
+    width: 100%;
+    height: 280px; /* Altura fija para el área de la imagen */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    border: 1px solid #dee2e6;
+    background-color: #f8f9fa; /* Fondo general para el área */
+    border-radius: 0.25rem;
+    overflow: hidden; /* Importante para object-fit */
+  }
+  .product-image {
+    max-width: 100%;
+    max-height: 100%; /* Se ajusta al contenedor .image-display-area */
+    object-fit: contain;
+    /* Se quitan border, background-color, margin-bottom específicos de aquí */
+  }
+  .product-no-image {
+    width: 100%;
+    height: 100%; /* Llena el contenedor .image-display-area */
+    display: flex;
+    flex-direction: column; /* Para apilar ícono y texto verticalmente */
+    align-items: center;
+    justify-content: center;
+    color: #adb5bd;
+    text-align: center;
+    /* font-size: 3rem; ya no se aplica aquí directamente */
+  }
+  .product-no-image i {
+    font-size: 3.5rem; /* Ícono más grande (aprox. 56px) */
+    line-height: 1;
+    margin-bottom: 1rem; /* Mayor espacio entre el ícono y el texto */
+  }
+  .product-no-image p {
+    font-size: 0.9rem; /* Texto ligeramente más grande */
+    color: #868e96;
+    margin-top: 0;
+    line-height: 1.4;
+  }
+  .product-name {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #343a40;
+    margin-bottom: 0.5rem;
+  }
+  .product-price {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #28a745; /* Verde para el precio */
+    margin-bottom: 0.75rem;
+  }
+  .stock-info dt {
+    font-weight: 500;
+    color: #6c757d;
+    padding-right: 0.5em;
+  }
+  .stock-info dd {
+    font-weight: normal;
+  }
+  .stock-badge {
+    font-size: 0.8em;
+    padding: 0.3em 0.6em;
+    border-radius: 0.2rem;
+    font-weight: 500;
+  }
+  .badge-stock-disponible {
+    background-color: #e4f6e8; color: #28a745;
+  }
+  .badge-stock-pocas {
+    background-color: #e7f3fe; color: #007bff;
+  }
+  .badge-stock-bajo {
+    background-color: #fff3cd; color: #ffc107;
+  }
+  .badge-stock-agotado {
+    background-color: #f8d7da; color: #dc3545;
+  }
+  .description-card .card-body {
+    line-height: 1.6;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+{% get_jazzmin_ui_tweaks as jazzmin_ui %}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-12">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'admin:index' %}">Inicio</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admin:CRMapp_producto_changelist' %}">Productos</a></li>
+                    <li class="breadcrumb-item active">Detalle: {{ producto.nombre }}</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-4">
+            <!-- Tarjeta Principal del Producto (Imagen, Nombre, Precio, Stock) -->
+            <div class="card product-main-card">
+                <div class="card-body">
+                    <div class="image-display-area">
+                        {% if producto.imagen %}
+                            <img src="{{ producto.imagen.url }}" alt="Imagen de {{ producto.nombre }}" class="product-image">
+                        {% else %}
+                            <div class="product-no-image">
+                                <i class="fas fa-image"></i> {# Ícono cambiado a fa-image #}
+                                <p>Sin imagen disponible</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <h2 class="product-name">{{ producto.nombre }}</h2>
+                    <p class="product-price">${{ producto.precio|floatformat:2|intcomma }}</p>
+                    
+                    <dl class="row stock-info mb-0">
+                        <dt class="col-auto"><i class="fas fa-cubes mr-1"></i>Stock:</dt>
+                        <dd class="col">
+                            {{ producto.stock }} unidades
+                            {% if producto.stock == 0 %}
+                                <span class="badge stock-badge badge-stock-agotado ml-2"><i class="fas fa-times-circle mr-1"></i>Agotado</span>
+                            {% elif producto.stock < 5 %}
+                                <span class="badge stock-badge badge-stock-bajo ml-2"><i class="fas fa-exclamation-triangle mr-1"></i>Bajo Stock</span>
+                            {% elif producto.stock < 10 %}
+                                <span class="badge stock-badge badge-stock-pocas ml-2"><i class="fas fa-info-circle mr-1"></i>Pocas unidades</span>
+                            {% else %}
+                                <span class="badge stock-badge badge-stock-disponible ml-2"><i class="fas fa-check-circle mr-1"></i>Disponible</span>
+                            {% endif %}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <!-- Tarjeta de Descripción con Botones de Acción -->
+            <div class="card description-card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-align-left"></i>Descripción</h3>
+                    <div class="card-tools">
+                        <a href="{% url 'admin:CRMapp_producto_change' producto.pk %}" class="btn btn-primary btn-sm mr-1">
+                            <i class="fas fa-edit mr-1"></i> Editar
+                        </a>
+                        <a href="{% url 'admin:CRMapp_producto_changelist' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-list mr-1"></i> Listado
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>{{ producto.descripcion|linebreaksbr|default:"Este producto no tiene una descripción detallada." }}</p>
+                </div>
+            </div>
+
+            <!-- Tarjeta de Historial de Ventas -->
+            <div class="card sales-history-card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-history"></i>Historial de Ventas</h3>
+                </div>
+                <div class="card-body p-0">
+                    {% if detalles_pedido %}
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>ID Pedido</th>
+                                        <th>Cliente</th>
+                                        <th>Fecha</th>
+                                        <th class="text-center">Cantidad</th>
+                                        <th class="text-right">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for detalle in detalles_pedido %}
+                                        <tr>
+                                            <td><a href="{% url 'admin:CRMapp_pedido_detail' detalle.pedido.pk %}">#{{ detalle.pedido.id }}</a></td>
+                                            <td><a href="{% url 'admin:CRMapp_cliente_detail' detalle.pedido.cliente.pk %}">{{ detalle.pedido.cliente.nombre }}</a></td>
+                                            <td>{{ detalle.pedido.fecha|date:"d/m/Y H:i" }}</td>
+                                            <td class="text-center">{{ detalle.cantidad }}</td>
+                                            <td class="text-right font-weight-bold">${{ detalle.subtotal|floatformat:2|intcomma }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="p-3 text-center">
+                            <i class="fas fa-chart-line fa-3x text-muted mb-2"></i>
+                            <p class="text-muted mb-0">Este producto aún no ha sido vendido.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

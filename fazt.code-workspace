@@ -1,0 +1,14 @@
+{
+    "folders": [
+      {
+        "path": "."
+      },
+      {
+        "path": "../../easy_crm_frontend"
+      }
+    ],
+    "settings": {
+      "typescript.enablePromptUseWorkspaceTsdk": true,
+      "reactSnippets.settings.importReactOnTop": false
+    }
+  }

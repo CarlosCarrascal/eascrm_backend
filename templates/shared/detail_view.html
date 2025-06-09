@@ -1,0 +1,45 @@
+{% extends "base/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/detail.css' %}">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Inicio' %}</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label=app_label %}">{{ app_label|capfirst }}</a>
+    &rsaquo; <a href="{% url model_list_url %}">{% block model_name %}{% endblock %}</a>
+    &rsaquo; {% block object_name %}{% endblock %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="detail-view">
+    <div class="detail-header">
+        <div class="detail-header-icon">
+            {% block header_icon %}{% endblock %}
+        </div>
+        <div class="detail-header-content">
+            <h1>{% block header_title %}{% endblock %}</h1>
+            <p>{% block header_subtitle %}{% endblock %}</p>
+        </div>
+        <div class="detail-actions">
+            <a href="{% block edit_url %}{% endblock %}" class="btn-edit">
+                <i class="fas fa-edit"></i> {% trans "Editar" %}
+            </a>
+            <a href="{% block delete_url %}{% endblock %}" class="btn-delete">
+                <i class="fas fa-trash-alt"></i> {% trans "Eliminar" %}
+            </a>
+            <a href="{% block back_url %}{% endblock %}" class="btn-back">
+                <i class="fas fa-arrow-left"></i> {% trans "Volver" %}
+            </a>
+        </div>
+    </div>
+    
+    <div class="detail-content">
+        {% block detail_content %}{% endblock %}
+    </div>
+</div>
+{% endblock %} 
