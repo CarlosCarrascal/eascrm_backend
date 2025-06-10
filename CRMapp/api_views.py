@@ -240,9 +240,14 @@ class PedidoViewSet(viewsets.ModelViewSet):
                 serializer.save(cliente=cliente)
                 return
             except Cliente.DoesNotExist:
-                pass
+                # Si el usuario no tiene cliente asociado, devolver un error claro
+                from rest_framework.exceptions import ValidationError
+                raise ValidationError({
+                    "error": "No tienes un perfil de cliente asociado a tu cuenta. Por favor, contacta con el administrador.",
+                    "detail": "Para crear pedidos, tu cuenta de usuario debe estar vinculada a un cliente."
+                })
         
-        # Si es admin o no se encontró cliente, comportamiento normal
+        # Si el cliente fue proporcionado en los datos o es un admin
         serializer.save()
     
     @action(detail=True, methods=['get'])
