@@ -131,6 +131,18 @@ class ClienteViewSet(viewsets.ModelViewSet):
             return ClienteUpdateSerializer
         return ClienteSerializer
     
+    def perform_update(self, serializer):
+        """
+        Log para verificar los datos recibidos en la actualización
+        """
+        print(f"Actualizando cliente: {serializer.instance.id}")
+        if 'foto' in self.request.data:
+            print("Imagen recibida en la actualización")
+            
+        # Guardar con los datos actualizados
+        serializer.save()
+        print(f"Cliente actualizado: {serializer.instance.id}")
+    
     @action(detail=True, methods=['get'])
     def pedidos(self, request, pk=None):
         """
@@ -463,14 +475,27 @@ def current_user(request):
     cliente_data = None
     try:
         cliente = Cliente.objects.get(usuario=user)
+        # Incluir todos los campos relevantes, incluida la foto
         cliente_data = {
             'id': cliente.id,
             'nombre': cliente.nombre,
             'email': cliente.email,
-            'direccion': cliente.direccion
+            'direccion': cliente.direccion,
+            'foto': request.build_absolute_uri(cliente.foto.url) if cliente.foto else None
         }
+        print(f"Datos del cliente para {user.username}:", cliente_data)
     except Cliente.DoesNotExist:
         pass
+    except Exception as e:
+        # Capturar cualquier excepción al procesar la foto
+        print(f"Error al obtener datos del cliente: {str(e)}")
+        cliente_data = {
+            'id': cliente.id,
+            'nombre': cliente.nombre,
+            'email': cliente.email,
+            'direccion': cliente.direccion,
+            'foto': None
+        }
     
     return Response({
         'user': user_data,
